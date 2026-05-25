@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- PWA / Mobile Web App Meta Tags -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VoltGo">
+<meta name="theme-color" content="#08080A">
+<title>VoltGo Campus — Prototype v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+
+/* ─────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────── */
+:root {
+  --bg:           #121212;
+  --surface:      #1C1C1E;
+  --surface2:     #252528;
+  --accent:       #CCFF00;
+  --accent-glow:  rgba(204,255,0,0.22);
+  --accent-dim:   rgba(204,255,0,0.10);
+  --border:       rgba(255,255,255,0.07);
+  --text-1:       #FFFFFF;
+  --text-2:       #8E8E93;
+  --text-3:       #48484A;
+  --danger:       #FF453A;
+  --success:      #30D158;
+  --info:         #2979FF;
+  --warning:      #FF9F0A;
+}
+
+/* ─────────────────────────────────────────
+   RESET & BASE
+───────────────────────────────────────── */
+* , *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: #08080A;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+/* ─────────────────────────────────────────
+   CONTAINER / SMARTPHONE CHASSIS
+───────────────────────────────────────── */
+.phone-chassis {
+  position: relative;
+  width: 375px;
+  height: 780px;
+  background: linear-gradient(145deg, #2b2b2e, #141416);
+  border-radius: 54px;
+  padding: 12px;
+  box-shadow: 
+    0 0 0 2px #313135,
+    0 25px 60px rgba(0,0,0,0.85),
+    inset 0 2px 2px rgba(255,255,255,0.1);
+}
+
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  border-radius: 44px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dynamic Island */
+.dynamic-island {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 115px;
+  height: 30px;
+  background: #000000;
+  border-radius: 20px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 14px;
+}
+
+.camera-lens {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #040814;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+}
+
+/* Status Bar */
+.status-bar {
+  height: 48px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 26px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  z-index: 999;
+  user-select: none;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-signal { display: flex; gap: 2px; align-items: flex-end; height: 10px; }
+.icon-signal span { width: 2.5px; background: var(--text-1); border-radius: 0.5px; }
+.icon-signal span:nth-child(1) { height: 35%; }
+.icon-signal span:nth-child(2) { height: 60%; }
+.icon-signal span:nth-child(3) { height: 85%; }
+.icon-signal span:nth-child(4) { height: 100%; }
+
+.icon-battery {
+  width: 22px;
+  height: 11px;
+  border: 1px solid var(--text-1);
+  border-radius: 3px;
+  padding: 1px;
+  position: relative;
+}
+.icon-battery::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 3px;
+  width: 2px;
+  height: 4px;
+  background: var(--text-1);
+  border-radius: 0 1px 1px 0;
+}
+.battery-level {
+  height: 100%;
+  width: 88%;
+  background: var(--text-1);
+  border-radius: 1px;
+}
+
+/* ─────────────────────────────────────────
+   NAVIGATION LOWER TAB BAR
+───────────────────────────────────────── */
+.tab-bar {
+  height: 84px;
+  background: rgba(22, 22, 24, 0.92);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: 12px;
+  z-index: 999;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--text-2);
+  cursor: pointer;
+  width: 70px;
+  transition: color 0.2s ease;
+}
+
+.tab-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+
+.tab-btn span {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.tab-btn.active {
+  color: var(--accent);
+}
+.tab-btn.active svg {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 2px 6px var(--accent-glow));
+}
+
+/* ─────────────────────────────────────────
+   SCREEN CONTROLLERS
+───────────────────────────────────────── */
+.screen-content {
+  flex: 1;
+  position: relative;
+}
+
+.view-panel {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: scale(0.98);
+  display: flex;
+  flex-direction: column;
+  height: 100%;         /* explicit height so flex children can measure themselves */
+  overflow: hidden;
+}
+
+.view-panel.active {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transform: scale(1);
+}
+
+/* ─────────────────────────────────────────
+   PANEL 1: MAP (LEAFLET REAL MAP)
+───────────────────────────────────────── */
+.map-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;        /* critical: lets flex child shrink and get a real height */
+  overflow: hidden;
+}
+
+#leaflet-map {
+  position: absolute;   /* fill the viewport completely */
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #0F1218;
+}
+
+/* Strip default Leaflet chrome to match dark theme */
+.leaflet-control-attribution {
+  background: rgba(0,0,0,0.5) !important;
+  color: rgba(255,255,255,0.3) !important;
+  font-size: 8px !important;
+  border-radius: 6px 0 0 0 !important;
+  padding: 2px 5px !important;
+}
+.leaflet-control-attribution a { color: rgba(255,255,255,0.4) !important; }
+.leaflet-container { font-family: 'Inter', sans-serif; }
+
+/* Dark filter applied only to the tile layer — markers stay unaffected */
+.leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) saturate(0.55) contrast(0.9);
+}
+
+/* Locate-me button overlay */
+.btn-locate {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 20;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(22,22,24,0.92);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  color: var(--text-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-locate:active { border-color: var(--accent); color: var(--accent); }
+.btn-locate.locating { border-color: var(--accent); color: var(--accent); animation: pulseAlpha 1s infinite; }
+
+/* Search bar dynamic setup */
+.search-pill {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  height: 48px;
+  background: rgba(28, 28, 30, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  backdrop-filter: blur(15px);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 10px;
+  z-index: 10;
+  cursor: pointer;
+  transition: border 0.2s;
+}
+.search-pill:hover, .search-pill.calculating {
+  border-color: var(--accent);
+}
+
+.search-placeholder {
+  font-size: 13px;
+  color: var(--text-2);
+  flex: 1;
+}
+
+.badge-live {
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 3px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+/* Search Results Dropdown Simulation */
+.search-dropdown {
+  position: absolute;
+  top: 68px;
+  left: 14px;
+  right: 14px;
+  background: rgba(24, 24, 26, 0.98);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  z-index: 100;
+  padding: 8px;
+  display: none;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+.search-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+.search-item:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--accent);
+}
+
+/* Active HUD Notification */
+.hud-toast {
+  position: absolute;
+  top: 76px;
+  left: 14px;
+  right: 14px;
+  background: rgba(20,20,22,0.95);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(-20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.hud-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+
+/* Main Action Trigger */
+.action-drawer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(18,18,20,1) 85%, rgba(18,18,20,0));
+  padding: 24px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #000000;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  border: none;
+  height: 52px;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 20px var(--accent-glow);
+  transition: transform 0.15s, opacity 0.15s;
+}
+.btn-primary:active { transform: scale(0.98); }
+
+/* ─────────────────────────────────────────
+   PANEL 2: WEB CAMERA INTERFACE
+───────────────────────────────────────── */
+.camera-container {
+  flex: 1;
+  background: #000000;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Video viewport */
+.video-stream-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#webcam-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+}
+
+/* Fallback canvas background */
+.camera-fallback {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, #182218 0%, #080a08 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 1;
+}
+
+/* Reticle Targeting Box */
+.scanner-reticle {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  z-index: 10;
+  cursor: pointer;
+}
+.reticle-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--accent);
+}
+.reticle-corner.tl { top:0; left:0; border-right:none; border-bottom:none; border-radius: 8px 0 0 0; }
+.reticle-corner.tr { top:0; right:0; border-left:none; border-bottom:none; border-radius: 0 8px 0 0; }
+.reticle-corner.bl { bottom:0; left:0; border-right:none; border-top:none; border-radius: 0 0 0 8px; }
+.reticle-corner.br { bottom:0; right:0; border-left:none; border-top:none; border-radius: 0 0 8px 0; }
+
+.laser-line {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  top: 4px;
+  animation: laserMove 2s ease-in-out infinite;
+}
+@keyframes laserMove { 0%, 100% { top: 4px; } 50% { top: 194px; } }
+
+/* Flash animation layer */
+.camera-flash-layer {
+  position: absolute;
+  inset: 0;
+  background: #FFFFFF;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 99;
+}
+.camera-flash-layer.flash-bang { animation: rapidFlash 0.35s ease-out; }
+@keyframes rapidFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+/* UI Overlays */
+.camera-top-hud {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 10;
+}
+.btn-close-cam {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-torch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-torch.active {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 0 15px var(--accent);
+}
+
+.camera-caption {
+  background: #000000;
+  padding: 20px 24px 24px;
+  text-align: center;
+}
+.caption-bold { font-size: 13px; line-height: 1.6; color: var(--text-1); }
+.caption-bold strong { color: var(--accent); }
+
+/* ─────────────────────────────────────────
+   PANEL 3: TELEMETRY ACTIVE DASHBOARD
+───────────────────────────────────────── */
+.dashboard-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dashboard-scroll::-webkit-scrollbar { display: none; }
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.pill-live-ride {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(204,255,0,0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.pulsing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulseAlpha 1.5s infinite;
+}
+@keyframes pulseAlpha { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* Radial Speedometer Gauge */
+.gauge-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.gauge-svg-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+.gauge-ring-bg { stroke: var(--surface2); stroke-width: 10; fill: none; }
+.gauge-ring-fill {
+  stroke: var(--accent);
+  stroke-width: 10;
+  stroke-linecap: round;
+  fill: none;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dasharray 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.gauge-core {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.speed-num { font-family: 'Archivo Black', sans-serif; font-size: 42px; line-height: 1; }
+.speed-unit { font-size: 10px; font-weight: 600; color: var(--text-2); letter-spacing: 0.5px; margin-top: 2px; }
+
+/* Campaign Highlight Widget */
+.widget-campaign {
+  background: linear-gradient(135deg, rgba(204,255,0,0.08) 0%, rgba(204,255,0,0.01) 100%);
+  border: 1px solid rgba(204,255,0,0.25);
+  border-radius: 20px;
+  padding: 16px;
+  position: relative;
+}
+.widget-campaign-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-2);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.saved-time-big {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 32px;
+  color: var(--accent);
+  line-height: 1.1;
+  text-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Metric Cards Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.card-metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.metric-label { font-size: 10px; font-weight: 500; color: var(--text-2); }
+.metric-val { font-family: 'Archivo Black', sans-serif; font-size: 18px; }
+
+/* Dynamic Route Indicator Card */
+.card-route {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.route-node-chain { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.node-circle { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); }
+.node-circle.start { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.node-pipe { width: 2px; height: 20px; background: var(--surface2); }
+.node-pipe.active { background: linear-gradient(to bottom, var(--accent), var(--surface2)); }
+.route-text-block { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.route-row { font-size: 11px; font-weight: 500; color: var(--text-2); }
+.route-row.highlight { font-size: 12px; color: var(--text-1); font-weight: 600; }
+
+/* Action Buttons Grid (End Ride & Pause lock) */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+.btn-secondary-action {
+  background: var(--surface2);
+  color: var(--text-1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.btn-secondary-action.paused {
+  background: var(--warning);
+  color: #000;
+  border-color: var(--warning);
+}
+.btn-danger {
+  background: rgba(255, 69, 58, 0.1);
+  color: var(--danger);
+  border: 1px solid rgba(255, 69, 58, 0.3);
+  height: 50px;
+  border-radius: 16px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+.btn-danger:active { background: rgba(255, 69, 58, 0.2); }
+
+/* ─────────────────────────────────────────
+   RECEIPT SUMMARY OVERLAY MODAL
+───────────────────────────────────────── */
+.receipt-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,10,12,0.96);
+  z-index: 9999;
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+.receipt-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.receipt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 20px;
+  margin: 20px 0 30px;
+}
+.receipt-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--surface2);
+  font-size: 13px;
+}
+.receipt-line:last-child { border-bottom: none; }
+.receipt-lbl { color: var(--text-2); }
+.receipt-v { font-weight: 600; }
+.receipt-v.total { color: var(--accent); font-family: 'Archivo Black', sans-serif; font-size: 16px; }
+
+.btn-white {
+  background: #FFFFFF;
+  color: #000000;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 13px;
+  border: none;
+  height: 50px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+/* ─────────────────────────────────────────
+   MOBILE DEVICE OVERRIDES
+   Activates when viewed on a real phone
+───────────────────────────────────────── */
+@media (max-width: 480px) {
+  body {
+    padding: 0;
+    justify-content: flex-start;
+    align-items: stretch;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
+    background: var(--bg);
+  }
+
+  .phone-chassis {
+    width: 100%;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .phone-screen {
+    border-radius: 0;
+    height: 100%;
+  }
+
+  /* Hide simulated chrome — the real OS has these */
+  .dynamic-island,
+  .status-bar {
+    display: none;
+  }
+
+  /* Push content below real iOS status bar */
+  .screen-content {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Tab bar: respect home indicator on iPhone */
+  .tab-bar {
+    height: calc(64px + env(safe-area-inset-bottom));
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .tab-btn { width: 80px; min-height: 44px; }
+
+  .btn-primary, .btn-danger, .btn-secondary-action, .btn-white {
+    min-height: 52px;
+    font-size: 15px;
+  }
+
+  .search-pill {
+    height: 52px;
+    top: calc(12px + env(safe-area-inset-top));
+  }
+
+  .receipt-overlay {
+    padding-top: calc(30px + env(safe-area-inset-top));
+    padding-bottom: calc(30px + env(safe-area-inset-bottom));
+  }
+
+  .btn-close-cam { width: 44px; height: 44px; }
+  .btn-torch { width: 52px; height: 52px; }
+
+  .camera-top-hud {
+    top: calc(14px + env(safe-area-inset-top));
+  }
+}
+
+/* ─────────────────────────────────────────
+   TOUCH BEHAVIOR IMPROVEMENTS
+───────────────────────────────────────── */
+button, .search-pill, .search-item, .hub-marker, .scanner-reticle {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+* { -webkit-user-select: none; user-select: none; }
+
+.dashboard-scroll { -webkit-overflow-scrolling: touch; }
+
+</style>
+</head>
+<body>
+
+<div class="phone-chassis">
+  <div class="phone-screen">
+
+    <div class="dynamic-island">
+      <div class="camera-lens"></div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-time" id="device-clock">12:00</div>
+      <div class="status-right">
+        <div class="icon-signal"><span></span><span></span><span></span><span></span></div>
+        <div class="icon-battery"><div class="battery-level"></div></div>
+      </div>
+    </div>
+
+    <div class="screen-content">
+
+      <div class="view-panel active" id="view-map">
+        <div class="search-pill" onclick="toggleSearchDropdown()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="search-placeholder" id="search-text">¿A qué zona del campus vas?</span>
+          <span class="badge-live">51B</span>
+        </div>
+
+        <div class="search-dropdown" id="search-dropdown">
+          <div class="search-item" onclick="selectDestination('VoltGo Hub - Biblioteca')"><span>📍 Bloque Biblioteca Central</span><span style="color:var(--accent)">6 min</span></div>
+          <div class="search-item" onclick="selectDestination('VoltGo Hub - Ingenierías')"><span>📍 Bloque G (Ingenierías)</span><span style="color:var(--accent)">4 min</span></div>
+          <div class="search-item" onclick="selectDestination('VoltGo Hub - Coliseo')"><span>📍 Coliseo Los Fundadores</span><span style="color:var(--accent)">7 min</span></div>
+        </div>
+
+        <div class="hud-toast" id="hud-toast">
+          <span style="font-size: 16px;">⚡</span>
+          <div style="flex:1">
+            <div style="font-size:11px; font-weight:700;" id="hud-title">Ruta Calculada</div>
+            <div style="font-size:10px; color:var(--text-2);" id="hud-desc">Evadiendo trancón de la 51B.</div>
+          </div>
+        </div>
+
+        <div class="map-viewport">
+          <div id="leaflet-map"></div>
+          <button class="btn-locate" id="btn-locate" onclick="locateUser()" title="Mi ubicación">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+              <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" opacity="0.3"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="action-drawer">
+          <button class="btn-primary" onclick="initiateCameraHardware()">
+            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Escanear QR para Desbloquear
+          </button>
+        </div>
+      </div>
+
+      <div class="view-panel" id="view-qr">
+        <div class="camera-container">
+          <div class="camera-top-hud">
+            <button class="btn-close-cam" onclick="terminateCameraHardware()">✕</button>
+            <button class="btn-torch" id="camera-torch-toggle" onclick="toggleDeviceTorch()">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </button>
+          </div>
+
+          <div class="video-stream-wrap">
+            <video id="webcam-element" autoplay playsinline muted></video>
+            
+            <div class="camera-fallback" id="webcam-fallback-ui">
+              <span style="font-size:28px;">📷</span>
+              <div style="font-size:11px; color:var(--text-2); text-align:center; padding:0 30px; line-height:1.4;">
+                Acceso a cámara activa.<br>Apunta al código QR del manubrio.
+              </div>
+              <button class="btn-primary" style="height:36px; font-size:11px; padding:0 14px; border-radius:10px;" onclick="triggerQRDetect()">Simular Escaneo Exitoso</button>
+            </div>
+
+            <div class="scanner-reticle" onclick="triggerQRDetect()">
+              <div class="reticle-corner tl"></div><div class="reticle-corner tr"></div>
+              <div class="reticle-corner bl"></div><div class="reticle-corner br"></div>
+              <div class="laser-line"></div>
+            </div>
+
+            <div class="camera-flash-layer" id="hardware-flash"></div>
+          </div>
+
+          <div class="camera-caption">
+            <p class="caption-bold">Escanea el QR y <strong>deja el trancón atrás.</strong><br><span style="color:var(--text-2); font-weight:400; font-size:11px;">Tu parcial en Uninorte empieza pronto.</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="view-panel" id="view-ride">
+        <div class="dashboard-scroll">
+          
+          <div class="status-header">
+            <div class="pill-live-ride"><div class="pulsing-dot"></div><span id="ride-status-lbl">VIAJE ACTIVO</span></div>
+            <span style="font-size:11px; font-weight:600; color:var(--text-3);">ID: #VT-9021</span>
+          </div>
+
+          <div class="gauge-box">
+            <div class="gauge-svg-wrap">
+              <svg viewBox="0 0 100 100" width="100%" height="100%">
+                <circle class="gauge-ring-bg" cx="50" cy="50" r="42"/>
+                <circle id="telemetry-gauge" class="gauge-ring-fill" cx="50" cy="50" r="42" stroke-dasharray="0 264"/>
+              </svg>
+              <div class="gauge-core">
+                <span class="speed-num" id="speed-num">0</span>
+                <span class="speed-unit">KM/H</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget-campaign">
+            <div class="widget-campaign-header">⏱️ Tiempo libre ganado hoy en la 51B</div>
+            <div class="saved-time-big">14:00 <span style="font-size:14px; font-family:'Inter'; font-weight:600; color:rgba(204,255,0,0.8);">mins</span></div>
+            <div style="font-size:10px; color:var(--text-2); margin-top:4px;">Frente a trancón estimado en bus/Waze</div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="card-metric"><span class="metric-label">Batería</span><span class="metric-val" style="color:var(--accent);">88%</span></div>
+            <div class="card-metric"><span class="metric-label">Distancia</span><span class="metric-val" id="metric-dist">0.00 km</span></div>
+            <div class="card-metric"><span class="metric-label">Tarifa (COP)</span><span class="metric-val" id="metric-cost">$0</span></div>
+          </div>
+
+          <div class="card-route">
+            <div class="route-node-chain">
+              <div class="node-circle start"></div><div class="node-pipe active"></div><div class="node-circle"></div>
+            </div>
+            <div class="route-text-block">
+              <div class="route-row">Paradero Express Calle 84 con 51B</div>
+              <div class="route-row highlight" id="active-destination-text">VoltGo Hub - Entrada Principal Campus</div>
+            </div>
+          </div>
+
+          <div class="action-grid">
+            <button class="btn-secondary-action" id="btn-pause-ride" onclick="togglePauseRide()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+              <span id="pause-btn-text">Pausar</span>
+            </button>
+            <button class="btn-danger" onclick="openReceiptOverlay()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+              Finalizar Viaje
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-map" onclick="routerNavigate('map')">
+        <svg viewBox="0 0 24 24"><polygon points="3 7 9 4 15 7 21 4 21 17 15 20 9 17 3 20"/><line x1="9" y1="4" x2="9" y2="17"/><line x1="15" y1="7" x2="15" y2="20"/></svg>
+        <span>Mapa</span>
+      </button>
+      <button class="tab-btn" id="tab-qr" onclick="routerNavigate('qr')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h2v2h-2zM18 14h2M18 18v2M14 18h2v2"/></svg>
+        <span>Escanear</span>
+      </button>
+      <button class="tab-btn" id="tab-ride" onclick="routerNavigate('ride')">
+        <svg viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="2.5"/><circle cx="18.5" cy="17.5" r="2.5"/><path d="M8 17.5h7M3 7h3l2 5h9l2-5M8 12l-1.5-5"/></svg>
+        <span>Mi Viaje</span>
+      </button>
+    </div>
+
+    <div class="receipt-overlay" id="receipt-overlay">
+      <div style="background:var(--accent-dim); border:1px solid var(--accent); color:var(--accent); font-size:10px; font-weight:700; padding:5px 12px; border-radius:20px; align-self:center; letter-spacing:1px;">VIAJE FINALIZADO</div>
+      <h2 style="font-family:'Archivo Black', sans-serif; font-size:24px; text-align:center; margin-top:16px;">¡Evadiste el trancón!</h2>
+      <p style="font-size:12px; color:var(--text-2); text-align:center; margin-top:4px;">Llegaste a tiempo a tu clase en Uninorte</p>
+
+      <div class="receipt-card">
+        <div class="receipt-line"><span class="receipt-lbl">Distancia total</span><span class="receipt-v" id="receipt-final-dist">1.34 km</span></div>
+        <div class="receipt-line"><span class="receipt-lbl">Tiempo de viaje</span><span class="receipt-v">5 mins 42 s</span></div>
+        <div class="receipt-line"><span class="receipt-lbl">⏱️ Tiempo libre salvado</span><span class="receipt-v" style="color:var(--accent);">14 minutos</span></div>
+        <div class="receipt-line" style="margin-top:4px; padding-top:16px; border-top:1px solid var(--surface2);"><span class="receipt-lbl" style="font-weight:600; color:var(--text-1);">Total debitado</span><span class="receipt-v total" id="receipt-final-cost">$2.100</span></div>
+      </div>
+
+      <button class="btn-white" onclick="closeReceiptAndReset()">Volver al Mapa</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   AUDIO INTERACTIVE SYSTEM (WEB AUDIO API)
+════════════════════════════════════════════════ */
+// Genera pitidos sintéticos nativos premium para dar feedback de hardware real
+function playAudioFeedback(patternType) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    
+    if (patternType === 'beep-success') {
+      // Tono ascendente rápido de emparejamiento / desbloqueo exitoso (D5 -> A5)
+      let osc = ctx.createOscillator();
+      let gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.setValueAtTime(880, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start(); osc.stop(ctx.currentTime + 0.25);
+    } 
+    else if (patternType === 'beep-click') {
+      // Micro-clic sutil para interacciones del mapa o linterna
+      let osc = ctx.createOscillator();
+      let gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(1200, ctx.currentTime);
+      gain.gain.setValueAtTime(0.03, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      osc.start(); osc.stop(ctx.currentTime + 0.04);
+    }
+    else if (patternType === 'beep-end') {
+      // Tono doble descendente armónico de cierre de servicio
+      let osc = ctx.createOscillator();
+      let gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(659.25, ctx.currentTime);
+      osc.frequency.setValueAtTime(523.25, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch (err) { console.log("Audio contexts blocked or unsupported:", err); }
+}
+
+/* ════════════════════════════════════════════════
+   LEAFLET MAP ENGINE
+════════════════════════════════════════════════ */
+let voltMap = null;
+let routeLayer = null;
+let destMarkerLeaflet = null;
+let userLocMarker = null;
+let userLocCircle = null;
+
+// Real GPS coordinates — verified locations, Barranquilla, Colombia
+const HUB_START   = { lat: 10.9980, lng: -74.8220, label: 'Hub Calle 84', sub: '5 patinetas · Listas para salir' };
+const DESTINATIONS = {
+  'VoltGo Hub - Biblioteca':  { lat: 11.0215, lng: -74.8498, label: 'Biblioteca Central'  },
+  'VoltGo Hub - Ingenierías': { lat: 11.0210, lng: -74.8512, label: 'Bloque G Ingenierías' },
+  'VoltGo Hub - Coliseo':     { lat: 11.0230, lng: -74.8510, label: 'Coliseo Fundadores'  },
+};
+
+function makeHubIcon(label, color) {
+  const c = color || '#CCFF00';
+  const tc = (c === '#CCFF00') ? '#000' : '#000';
+  return L.divIcon({
+    className: '',
+    html: `<div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
+      <div style="background:${c};color:${tc};font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;white-space:nowrap;box-shadow:0 4px 10px rgba(204,255,0,0.3);font-family:'Inter',sans-serif;letter-spacing:0.2px;">${label}</div>
+      <div style="width:2px;height:6px;background:${c};"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:${c};box-shadow:0 0 0 5px rgba(204,255,0,0.2);"></div>
+    </div>`,
+    iconSize: [90, 36],
+    iconAnchor: [45, 36],
+    popupAnchor: [0, -38]
+  });
+}
+
+function makeUserIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:16px;height:16px;border-radius:50%;background:#2979FF;border:3px solid #fff;box-shadow:0 0 0 6px rgba(41,121,255,0.25);"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  });
+}
+
+function initLeafletMap() {
+  voltMap = L.map('leaflet-map', {
+    center: [11.0100, -74.8360],
+    zoom: 13,
+    zoomControl: false,
+    attributionControl: true,
+    tapTolerance: 15
+  });
+
+  // OpenStreetMap tiles — most reliable, no key, no CORS issues
+  // CSS dark filter applied via .leaflet-tile-pane to match VoltGo theme
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    subdomains: 'abc',
+    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+    crossOrigin: true
+  }).addTo(voltMap);
+
+  // Hub pickup marker (Calle 84)
+  L.marker([HUB_START.lat, HUB_START.lng], { icon: makeHubIcon('Hub Calle 84', '#CCFF00') })
+    .addTo(voltMap)
+    .on('click', () => showHubToast('Punto Transbordo Cl. 84', HUB_START.sub));
+
+  // Destination hub markers (dimmer)
+  Object.entries(DESTINATIONS).forEach(([key, d]) => {
+    L.marker([d.lat, d.lng], { icon: makeHubIcon(d.label, 'rgba(204,255,0,0.55)') })
+      .addTo(voltMap)
+      .on('click', () => selectDestination(key));
+  });
+}
+
+async function selectDestination(name) {
+  document.getElementById('search-dropdown').style.display = 'none';
+  document.getElementById('search-text').innerText = name;
+  document.getElementById('active-destination-text').innerText = name;
+  playAudioFeedback('beep-click');
+
+  const dest = DESTINATIONS[name];
+  if (!dest || !voltMap) return;
+
+  // Clear old route and dest marker
+  if (routeLayer)        { voltMap.removeLayer(routeLayer);        routeLayer = null; }
+  if (destMarkerLeaflet) { voltMap.removeLayer(destMarkerLeaflet); destMarkerLeaflet = null; }
+
+  // Drop destination marker
+  destMarkerLeaflet = L.marker([dest.lat, dest.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="display:flex;flex-direction:column;align-items:center;">
+        <div style="background:#fff;color:#000;font-size:9px;font-weight:700;padding:3px 7px;border-radius:6px;white-space:nowrap;font-family:'Inter',sans-serif;">Destino</div>
+        <div style="width:2px;height:6px;background:#fff;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,0.2);"></div>
+      </div>`,
+      iconSize: [60, 36],
+      iconAnchor: [30, 36]
+    })
+  }).addTo(voltMap);
+
+  // Fetch real driving route from OSRM (free, no API key)
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/` +
+      `${HUB_START.lng},${HUB_START.lat};${dest.lng},${dest.lat}` +
+      `?overview=full&geometries=geojson`;
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.routes && data.routes[0]) {
+      const latlngs = data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+      routeLayer = L.polyline(latlngs, {
+        color:    '#CCFF00',
+        weight:   5,
+        opacity:  0.9,
+        dashArray: '10, 6',
+        lineCap:  'round',
+        lineJoin: 'round'
+      }).addTo(voltMap);
+
+      voltMap.fitBounds(routeLayer.getBounds(), { padding: [70, 70] });
+      const mins = Math.max(1, Math.round(data.routes[0].duration / 60));
+      const km   = (data.routes[0].distance / 1000).toFixed(1);
+      showHubToast("Ruta Óptima Generada", `${mins} min · ${km} km · Evitando congestión en la 51B`);
+    }
+  } catch (e) {
+    // Offline fallback: straight dashed line
+    routeLayer = L.polyline(
+      [[HUB_START.lat, HUB_START.lng], [dest.lat, dest.lng]],
+      { color: '#CCFF00', weight: 4, dashArray: '8, 5', opacity: 0.8 }
+    ).addTo(voltMap);
+    voltMap.fitBounds(routeLayer.getBounds(), { padding: [70, 70] });
+    showHubToast("Ruta Generada", "Evitando congestión pesada en la oreja de la 51B.");
+  }
+}
+
+function locateUser() {
+  if (!navigator.geolocation || !voltMap) return;
+  const btn = document.getElementById('btn-locate');
+  btn.classList.add('locating');
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      btn.classList.remove('locating');
+      const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+
+      if (userLocMarker)  voltMap.removeLayer(userLocMarker);
+      if (userLocCircle)  voltMap.removeLayer(userLocCircle);
+
+      userLocMarker = L.marker([lat, lng], { icon: makeUserIcon(), zIndexOffset: 1000 }).addTo(voltMap);
+      userLocCircle = L.circle([lat, lng], {
+        radius: Math.min(accuracy, 50),
+        color: '#2979FF', fillColor: '#2979FF',
+        fillOpacity: 0.12, weight: 1, opacity: 0.4
+      }).addTo(voltMap);
+
+      voltMap.setView([lat, lng], 15, { animate: true });
+    },
+    () => {
+      btn.classList.remove('locating');
+      // Center on Uninorte if GPS denied
+      voltMap.setView([11.0228, -74.8506], 15, { animate: true });
+    },
+    { enableHighAccuracy: true, timeout: 8000 }
+  );
+}
+
+
+let activeView = 'map';
+let localStream = null;
+let cameraTimeout = null;
+let speedInterval = null;
+
+// Telemetry state metrics
+let telemetryActive = false;
+let isPaused = false;
+let currentSpeed = 0;
+let distanceAccumulated = 0.0;
+let costAccumulated = 0;
+
+const SP_CIRC = 2 * Math.PI * 42; // Gauge Circumference Bounds (~263.89)
+
+/* ════════════════════════════════════════════════
+   ROUTER NAVIGATION INTERFACES
+════════════════════════════════════════════════ */
+function routerNavigate(targetPanelId) {
+  if (targetPanelId === activeView) return;
+  playAudioFeedback('beep-click');
+
+  if (activeView === 'qr') terminateCameraHardware();
+
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  document.getElementById(`view-${targetPanelId}`).classList.add('active');
+  document.getElementById(`tab-${targetPanelId}`).classList.add('active');
+
+  activeView = targetPanelId;
+
+  if (targetPanelId === 'ride') {
+    telemetryActive = true;
+    startTelemetryLoop();
+  } else {
+    stopTelemetryLoop();
+  }
+
+  // Invalidate Leaflet size if returning to map (fixes tile gaps after hidden)
+  if (targetPanelId === 'map' && voltMap) {
+    setTimeout(() => voltMap.invalidateSize(), 50);
+  }
+}
+
+/* ════════════════════════════════════════════════
+   PANEL 1: SEARCH AND TOAST CONTROLS
+════════════════════════════════════════════════ */
+function toggleSearchDropdown() {
+  playAudioFeedback('beep-click');
+  const dd = document.getElementById('search-dropdown');
+  dd.style.display = (dd.style.display === 'block') ? 'none' : 'block';
+}
+
+function showHubToast(title, description) {
+  const toast = document.getElementById('hud-toast');
+  document.getElementById('hud-title').innerText = title;
+  document.getElementById('hud-desc').innerText = description;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4500);
+}
+
+/* ════════════════════════════════════════════════
+   PANEL 2: HARDWARE WEBCAM & SCAN FLOWS
+════════════════════════════════════════════════ */
+function initiateCameraHardware() {
+  routerNavigate('qr');
+  const videoNode = document.getElementById('webcam-element');
+  const fallbackUI = document.getElementById('webcam-fallback-ui');
+
+  // Intentar acceder a la cámara trasera real del dispositivo móvil
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => {
+        localStream = stream;
+        videoNode.srcObject = stream;
+        videoNode.style.display = "block";
+        fallbackUI.style.opacity = "0"; // Esconder la interfaz de fallback si hay video real
+        
+        // Simular escaneo de QR automático a los 3.5 segundos de transmisión limpia
+        cameraTimeout = setTimeout(() => {
+          triggerQRDetect();
+        }, 3500);
+      })
+      .catch(err => {
+        console.warn("Camera hardware access denied/unavailable:", err);
+        displayCameraFallback();
+      });
+  } else {
+    displayCameraFallback();
+  }
+}
+
+function displayCameraFallback() {
+  const videoNode = document.getElementById('webcam-element');
+  const fallbackUI = document.getElementById('webcam-fallback-ui');
+  videoNode.style.display = "none";
+  fallbackUI.style.opacity = "1";
+}
+
+function terminateCameraHardware() {
+  if (cameraTimeout) clearTimeout(cameraTimeout);
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+  }
+  document.getElementById('webcam-element').srcObject = null;
+  document.getElementById('camera-torch-toggle').classList.remove('active');
+}
+
+function toggleDeviceTorch() {
+  playAudioFeedback('beep-click');
+  const torchBtn = document.getElementById('camera-torch-toggle');
+  torchBtn.classList.toggle('active');
+  
+  // Intento de encender el Flash/Linterna real si el hardware del smartphone lo soporta
+  if (localStream) {
+    const track = localStream.getVideoTracks()[0];
+    if (track && typeof track.getCapabilities === 'function') {
+      const capabilities = track.getCapabilities();
+      if (capabilities.torch) {
+        track.applyConstraints({
+          advanced: [{ torch: torchBtn.classList.contains('active') }]
+        }).catch(e => console.log("Torch constraint err:", e));
+      }
+    }
+  }
+}
+
+function triggerQRDetect() {
+  if (cameraTimeout) clearTimeout(cameraTimeout);
+  
+  // Disparar sonido e impacto visual de flash
+  playAudioFeedback('beep-success');
+  const flashLayer = document.getElementById('hardware-flash');
+  flashLayer.classList.add('flash-bang');
+
+  // Limpiar e iniciar viaje tras la animación del flash
+  setTimeout(() => {
+    flashLayer.classList.remove('flash-bang');
+    terminateCameraHardware();
+    
+    // Reset de métricas para el nuevo viaje
+    distanceAccumulated = 0.0;
+    costAccumulated = 1500; // Tarifa base de desbloqueo COP
+    isPaused = false;
+    document.getElementById('btn-pause-ride').classList.remove('paused');
+    document.getElementById('pause-btn-text').innerText = "Pausar";
+    document.getElementById('ride-status-lbl').innerText = "VIAJE ACTIVO";
+    
+    routerNavigate('ride');
+  }, 3500);
+}
+
+/* ════════════════════════════════════════════════
+   PANEL 3: TELEMETRY AND SPEEDOMETER LOOPS
+════════════════════════════════════════════════ */
+function refreshSpeedometerGauge(speedVal) {
+  const fillRing = document.getElementById('telemetry-gauge');
+  const textNode = document.getElementById('speed-num');
+  
+  if (textNode) textNode.textContent = Math.round(speedVal);
+  
+  // Mapear velocidad máxima (clamped a 25 km/h) a la circunferencia SVG
+  let pct = Math.min(speedVal / 25, 1);
+  let dashOffset = SP_CIRC - (SP_CIRC * pct);
+  if (fillRing) fillRing.style.strokeDasharray = `${SP_CIRC * pct} ${SP_CIRC}`;
+}
+
+function startTelemetryLoop() {
+  if (speedInterval) clearInterval(speedInterval);
+  
+  speedInterval = setInterval(() => {
+    if (isPaused) {
+      // Si la patineta está pausada, la velocidad cae a cero de golpe
+      currentSpeed = 0;
+      refreshSpeedometerGauge(currentSpeed);
+      return;
+    }
+
+    // Fluctuación realista de la patineta sorteando el flujo exterior (16 a 24 km/h)
+    currentSpeed += (Math.random() - 0.5) * 4;
+    currentSpeed = Math.max(16, Math.min(24, currentSpeed));
+    refreshSpeedometerGauge(currentSpeed);
+
+    // Incrementar métricas en tiempo real de forma síncrona
+    // Distancia basada en la velocidad actual simulada por ciclo de tiempo corto
+    let stepDistance = (currentSpeed / 3600) * 0.6; 
+    distanceAccumulated += stepDistance;
+    document.getElementById('metric-dist').innerText = `${distanceAccumulated.toFixed(2)} km`;
+
+    // Tarifa dinámica acumulada: +$50 COP por cada fracción de tiempo
+    costAccumulated += 15;
+    document.getElementById('metric-cost').innerText = `$${Math.round(costAccumulated)}`;
+  }, 600);
+}
+
+function stopTelemetryLoop() {
+  if (speedInterval) {
+    clearInterval(speedInterval);
+    speedInterval = null;
+  }
+}
+
+/* Función de Pausa Temporal (UX de micro-movilidad avanzada) */
+function togglePauseRide() {
+  playAudioFeedback('beep-click');
+  const btn = document.getElementById('btn-pause-ride');
+  const statusLbl = document.getElementById('ride-status-lbl');
+  
+  isPaused = !isPaused;
+  
+  if (isPaused) {
+    btn.classList.add('paused');
+    document.getElementById('pause-btn-text').innerText = "Reanudar";
+    statusLbl.innerText = "VIAJE PAUSADO";
+  } else {
+    btn.classList.remove('paused');
+    document.getElementById('pause-btn-text').innerText = "Pausar";
+    statusLbl.innerText = "VIAJE ACTIVO";
+  }
+}
+
+/* ════════════════════════════════════════════════
+   OVERLAY MODALS AND SYSTEM INITIALIZERS
+════════════════════════════════════════════════ */
+function openReceiptOverlay() {
+  stopTelemetryLoop();
+  playAudioFeedback('beep-end');
+  
+  // Cargar métricas dinámicas finales calculadas en el recibo de cobro
+  document.getElementById('receipt-final-dist').innerText = `${distanceAccumulated.toFixed(2)} km`;
+  document.getElementById('receipt-final-cost').innerText = `$${Math.round(costAccumulated)} COP`;
+  
+  document.getElementById('receipt-overlay').classList.add('open');
+}
+
+function closeReceiptAndReset() {
+  playAudioFeedback('beep-click');
+  document.getElementById('receipt-overlay').classList.remove('open');
+  
+  // Limpiar ruta dibujada y reiniciar barra de búsqueda
+  document.getElementById('map-route-line').setAttribute('d', '');
+  document.getElementById('destination-marker').style.display = 'none';
+  document.getElementById('search-text').innerText = "¿A qué zona del campus vas?";
+  
+  routerNavigate('map');
+}
+
+// Reloj interno del chasis del smartphone
+setInterval(() => {
+  const time = new Date();
+  let h = time.getHours();
+  let m = time.getMinutes();
+  document.getElementById('device-clock').innerText = `${h}:${m < 10 ? '0'+m : m}`;
+}, 1000);
+
+// Initialize Leaflet map and draw default route on app start
+window.addEventListener('load', () => {
+  if (typeof L === 'undefined') {
+    console.error('Leaflet failed to load — check your internet connection.');
+    return;
+  }
+  initLeafletMap();
+  // Give the browser one frame to paint the container before Leaflet measures it
+  requestAnimationFrame(() => {
+    if (voltMap) voltMap.invalidateSize();
+    selectDestination('VoltGo Hub - Biblioteca');
+  });
+});
+</script>
+</body>
+</html>
